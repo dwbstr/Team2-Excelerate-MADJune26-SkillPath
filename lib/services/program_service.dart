@@ -7,7 +7,7 @@ class ProgramService {
     // Simulate a network delay
     await Future.delayed(const Duration(seconds: 1));
     
-    try {
+    try { 
       final String response = await rootBundle.loadString('assets/programs.json');
       final List<dynamic> data = json.decode(response);
       return data.map((json) => Program.fromJson(json)).toList();
