@@ -7,7 +7,7 @@ class Instructor {
     required this.name,
     required this.title,
     required this.bio,
-  });
+  }); 
 
   factory Instructor.fromJson(Map<String, dynamic> json) {
     return Instructor(
