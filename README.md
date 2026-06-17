@@ -8,7 +8,7 @@
   <img src="https://img.shields.io/badge/Platform-Android%20%7C%20iOS-lightgrey?style=for-the-badge"/>
   <img src="https://img.shields.io/badge/Status-Week%203%20Complete-4A90D9?style=for-the-badge"/>
 </p>
-
+ 
 ---
 
 ## Vision
