@@ -3,7 +3,7 @@ import '../models/program.dart';
 import 'registration_screen.dart'; 
 
 class ProgramDetailScreen extends StatefulWidget {
-  final Program program;
+  final Program program; 
 
   const ProgramDetailScreen({super.key, required this.program});
 
