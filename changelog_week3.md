@@ -5,7 +5,7 @@
 - **Program List Screen Updated**: `ProgramListScreen` now dynamically fetches the list of programs asynchronously using `rootBundle.loadString()`. It parses the JSON and updates the UI state.
 - **Loading & Error Handling**: While data is being parsed or waiting for the mocked network delay, a `CircularProgressIndicator` is shown. If fetching fails, a clear error message is displayed.
 - **Registration Form Implementation**: Added a new screen called `RegistrationScreen`. This screen is accessed by tapping the "Enroll Now" button on the `ProgramDetailScreen`.
-- **Form Validation**: The registration form takes Name, Email, Password, and Experience Level (dropdown). The form utilizes Flutter's `FormState` to validate input:
+- **Form Validation**:  The registration form takes Name, Email, Password, and Experience Level (dropdown). The form utilizes Flutter's `FormState` to validate input:
   - Name is required.
   - Email is required and must follow standard email Regex validation.
   - Password is required and must be at least 6 characters.
