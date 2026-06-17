@@ -8,7 +8,7 @@ void main() {
 }
 
 class SkillPathApp extends StatelessWidget {
-  const SkillPathApp({super.key});
+  const SkillPathApp({super.key}); 
 
   @override
   Widget build(BuildContext context) {
