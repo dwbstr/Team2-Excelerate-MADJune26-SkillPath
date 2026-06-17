@@ -8,7 +8,7 @@
   <img src="https://img.shields.io/badge/Platform-Android%20%7C%20iOS-lightgrey?style=for-the-badge"/>
   <img src="https://img.shields.io/badge/Status-Week%203%20Complete-4A90D9?style=for-the-badge"/>
 </p>
- 
+
 ---
 
 ## Vision
@@ -236,17 +236,6 @@ LoginScreen
 
 ---
 
-## Roadmap
-
-| Week | Focus | Status |
-|------|-------|--------|
-| Week 1 | Planning, wireframes, repo setup | ✅ Done |
-| Week 2 | Core UI screens + navigation | ✅ Done |
-| Week 3 | Backend integration, real data, auth | ✅ Done |
-| Week 4 | Dashboard, progress tracking, polish | 🔜 Upcoming |
-
----
-
 ## Week 3 — Data Fetching, Forms & Refactoring ✅
 
 ### What Was Built
@@ -264,14 +253,21 @@ We integrated sample JSON data to dynamically populate our program list, simulat
 #### Screen 5 — Registration Screen
 Contains form validation to ensure users enter valid details before enrolling in a program.
 <p align="center">
-  <img src="assets/screenshots/registration.png" width="280" alt="Registration Screen"/>
+  <img width="720" height="1600" alt="image" src="https://github.com/user-attachments/assets/bf201de7-f8df-401d-a897-98f709f981bf" />
 </p>
 
 #### Screen 6 — Feedback Form (Program Detail)
 Allows learners to leave reviews and feedback on specific courses.
 <p align="center">
-  <img src="assets/screenshots/feedback.png" width="280" alt="Feedback Form"/>
+  <img width="720" height="1600" alt="image" src="https://github.com/user-attachments/assets/02c02c33-dc58-4eb6-b2d2-64c2e9124a6a" />
 </p>
+
+### 📱 App Demo
+
+Watch the complete application demo here:
+
+[SLU 0106 MAD TEAM - 2 - WEEK 3 Demo Video ](https://docs.google.com/videos/d/1LmWKiPiNnZnhel9AMARc43IV1NWjaGR8j0BbJCRJR8k/edit?usp=sharing)
+
 
 ### State Management & User Experience
 - ✅ Used Flutter's `setState()` for managing loading, success, and error states.
@@ -286,4 +282,16 @@ Allows learners to leave reviews and feedback on specific courses.
 - Modified `program_list_screen.dart` to connect JSON data
 - Modified `program_detail_screen.dart` to add the feedback form
 ---
-"# Team2-Excelerate"
+
+## Roadmap
+
+| Week | Focus | Status |
+|------|-------|--------|
+| Week 1 | Planning, wireframes, repo setup | ✅ Done |
+| Week 2 | Core UI screens + navigation | ✅ Done |
+| Week 3 | Backend integration, real data, auth | ✅ Done |
+| Week 4 | Dashboard, progress tracking, polish | 🔜 Upcoming |
+
+---
+
+# Team2-Excelerate SLU 0106 MAD - WEEK 3
