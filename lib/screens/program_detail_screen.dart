@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/program.dart';
-import 'registration_screen.dart';
+import 'registration_screen.dart'; 
 
 class ProgramDetailScreen extends StatefulWidget {
   final Program program;
