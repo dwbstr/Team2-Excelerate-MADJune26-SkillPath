@@ -1,0 +1,137 @@
+[
+  {
+    "title": "Flutter for Beginners",
+    "description": "Learn Flutter from scratch and build your first mobile app with hands-on projects.",
+    "duration": "4 weeks",
+    "level": "Beginner",
+    "rating": "4.8",
+    "reviews": "120",
+    "instructor": {
+      "name": "Jane Doe",
+      "title": "Lead Flutter Developer",
+      "bio": "Jane has built over 50 production Flutter apps and loves teaching."
+    },
+    "reviewsList": [
+      {
+        "name": "Alice M.",
+        "comment": "Perfect for complete beginners!",
+        "stars": 5
+      },
+      {
+        "name": "Bob T.",
+        "comment": "Great pacing and examples.",
+        "stars": 4
+      }
+    ]
+  },
+  {
+    "title": "UI/UX Design Fundamentals",
+    "description": "Master the principles of user interface and experience design using modern tools.",
+    "duration": "3 weeks",
+    "level": "Beginner",
+    "rating": "4.6",
+    "reviews": "98",
+    "instructor": {
+      "name": "Sarah Smith",
+      "title": "Senior UX Designer",
+      "bio": "Sarah has worked at top tech firms designing intuitive interfaces."
+    },
+    "reviewsList": [
+      {
+        "name": "Chris J.",
+        "comment": "Really opened my eyes to good design.",
+        "stars": 5
+      }
+    ]
+  },
+  {
+    "title": "Digital Marketing Bootcamp",
+    "description": "Learn SEO, social media, content marketing, and paid advertising strategies.",
+    "duration": "5 weeks",
+    "level": "Intermediate",
+    "rating": "4.7",
+    "reviews": "215",
+    "instructor": {
+      "name": "Michael Lee",
+      "title": "Digital Marketing Strategist",
+      "bio": "Michael has driven millions in revenue through SEO and paid ads."
+    },
+    "reviewsList": [
+      {
+        "name": "Diana K.",
+        "comment": "Very comprehensive bootcamp.",
+        "stars": 5
+      },
+      {
+        "name": "Evan W.",
+        "comment": "Good content but fast-paced.",
+        "stars": 4
+      }
+    ]
+  },
+  {
+    "title": "Python for Data Science",
+    "description": "Explore data analysis, visualization, and machine learning using Python.",
+    "duration": "6 weeks",
+    "level": "Advanced",
+    "rating": "4.9",
+    "reviews": "340",
+    "instructor": {
+      "name": "Dr. Alan Turing",
+      "title": "Data Scientist & Educator",
+      "bio": "Alan has a PhD in CS and loves visualizing complex data."
+    },
+    "reviewsList": [
+      {
+        "name": "Fiona G.",
+        "comment": "The best Python course I've taken.",
+        "stars": 5
+      }
+    ]
+  },
+  {
+    "title": "Business Strategy Essentials",
+    "description": "Understand core business strategy frameworks and apply them to real scenarios.",
+    "duration": "4 weeks",
+    "level": "Intermediate",
+    "rating": "4.5",
+    "reviews": "88",
+    "instructor": {
+      "name": "Emily Chen",
+      "title": "Management Consultant",
+      "bio": "Emily advises Fortune 500 companies on business strategy."
+    },
+    "reviewsList": [
+      {
+        "name": "George H.",
+        "comment": "Solid frameworks, very applicable.",
+        "stars": 4
+      }
+    ]
+  },
+  {
+    "title": "Graphic Design with Canva",
+    "description": "Create stunning visual content for social media, presentations, and branding.",
+    "duration": "2 weeks",
+    "level": "Beginner",
+    "rating": "4.4",
+    "reviews": "175",
+    "instructor": {
+      "name": "Laura Green",
+      "title": "Graphic Designer",
+      "bio": "Laura makes design accessible for everyone using Canva."
+    },
+    "reviewsList": [
+      {
+        "name": "Hannah L.",
+        "comment": "Now I can make my own graphics!",
+        "stars": 5
+      },
+      {
+        "name": "Ian P.",
+        "comment": "Quick and easy to learn.",
+        "stars": 4
+      }
+    ]
+  }
+]
