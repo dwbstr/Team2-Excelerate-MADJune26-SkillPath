@@ -266,7 +266,7 @@ Allows learners to leave reviews and feedback on specific courses.
 
 Watch the complete application demo here:
 
-[SLU 0106 MAD TEAM - 2 - WEEK 3 Demo Video ](https://docs.google.com/videos/d/1LmWKiPiNnZnhel9AMARc43IV1NWjaGR8j0BbJCRJR8k/edit?usp=sharing)
+[[SLU 0106 MAD TEAM - 2 - WEEK 3 Demo Video](https://drive.google.com/file/d/1uDGS7II45K63CdiP0TqYfy8aoj0K5Bxu/view?usp=sharing) ](https://docs.google.com/videos/d/1LmWKiPiNnZnhel9AMARc43IV1NWjaGR8j0BbJCRJR8k/edit?usp=sharing)
 
 
 ### State Management & User Experience
