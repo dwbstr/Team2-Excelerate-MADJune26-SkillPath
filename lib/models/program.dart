@@ -7,7 +7,7 @@ class Instructor {
     required this.name,
     required this.title,
     required this.bio,
-  }); 
+  });
 
   factory Instructor.fromJson(Map<String, dynamic> json) {
     return Instructor(
@@ -43,6 +43,7 @@ class Program {
   final String description;
   final String duration;
   final String level;
+  final String category;
   final String rating;
   final String reviews;
   final Instructor? instructor;
@@ -53,6 +54,7 @@ class Program {
     required this.description,
     required this.duration,
     required this.level,
+    required this.category,
     required this.rating,
     required this.reviews,
     this.instructor,
@@ -68,9 +70,12 @@ class Program {
       description: json['description'] ?? '',
       duration: json['duration'] ?? '',
       level: json['level'] ?? '',
+      category: json['category'] ?? 'Tech',
       rating: json['rating'] ?? '',
       reviews: json['reviews'] ?? '',
-      instructor: json['instructor'] != null ? Instructor.fromJson(json['instructor']) : null,
+      instructor: json['instructor'] != null
+          ? Instructor.fromJson(json['instructor'])
+          : null,
       reviewsList: parsedReviews,
     );
   }

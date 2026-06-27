@@ -1,312 +1,415 @@
 import 'package:flutter/material.dart';
+import '../app_theme.dart';
 import '../models/program.dart';
 import '../services/program_service.dart';
 import 'program_detail_screen.dart';
 
 class ProgramListScreen extends StatefulWidget {
   const ProgramListScreen({super.key});
- 
+
   @override
   State<ProgramListScreen> createState() => _ProgramListScreenState();
 }
 
 class _ProgramListScreenState extends State<ProgramListScreen> {
-  int _selectedFilter = 1; // 0=popular, 1=All, 2=beginner, 3=Advanced, 4=Latest
+  // 0=All, 1=Popular, 2=Beginner, 3=Intermediate, 4=Advanced
+  int _selectedFilter = 0;
 
-  final List<String> _filters = ['popular', 'All', 'beginner', 'Advanced', 'Latest'];
+  final List<Map<String, String>> _filters = [
+    {'label': 'All', 'value': 'all'},
+    {'label': '⭐ Popular', 'value': 'popular'},
+    {'label': 'Beginner', 'value': 'Beginner'},
+    {'label': 'Intermediate', 'value': 'Intermediate'},
+    {'label': 'Advanced', 'value': 'Advanced'},
+  ];
 
-  List<Program> _programs = [];
-  List<Program> _filteredPrograms = [];
+  List<Program> _allPrograms = [];
+  List<Program> _displayPrograms = [];
   bool _isLoading = true;
   String _errorMessage = '';
-  final ProgramService _programService = ProgramService();
   final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _fetchPrograms();
-    _searchController.addListener(_onSearchChanged);
+    _searchController.addListener(_applyFilters);
   }
 
   @override
   void dispose() {
-    _searchController.removeListener(_onSearchChanged);
+    _searchController.removeListener(_applyFilters);
     _searchController.dispose();
     super.dispose();
   }
 
-  void _onSearchChanged() {
-    setState(() {
-      if (_searchController.text.isEmpty) {
-        _filteredPrograms = _programs;
-      } else {
-        _filteredPrograms = _programs
-            .where((program) => program.title
-                .toLowerCase()
-                .contains(_searchController.text.toLowerCase()))
-            .toList();
-      }
-    });
-  }
-
   Future<void> _fetchPrograms() async {
     try {
-      final data = await _programService.fetchPrograms();
+      final data = await ProgramService().fetchPrograms();
       setState(() {
-        _programs = data;
-        _filteredPrograms = data;
+        _allPrograms = data;
         _isLoading = false;
       });
+      _applyFilters();
     } catch (e) {
       setState(() {
-        _errorMessage = e.toString();
+        _errorMessage = 'Failed to load programs. Please try again.';
         _isLoading = false;
       });
     }
   }
+
+  void _applyFilters() {
+    final query = _searchController.text.toLowerCase().trim();
+    final filterValue = _filters[_selectedFilter]['value']!;
+
+    List<Program> result = List.from(_allPrograms);
+
+    // Apply level / mode filter
+    if (filterValue == 'popular') {
+      result.sort((a, b) =>
+          double.parse(b.rating).compareTo(double.parse(a.rating)));
+    } else if (filterValue != 'all') {
+      result = result.where((p) => p.level == filterValue).toList();
+    }
+
+    // Apply search query
+    if (query.isNotEmpty) {
+      result = result
+          .where((p) =>
+              p.title.toLowerCase().contains(query) ||
+              p.description.toLowerCase().contains(query) ||
+              p.category.toLowerCase().contains(query))
+          .toList();
+    }
+
+    setState(() => _displayPrograms = result);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: Color(0xFF1A1A2E), size: 20),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Programs',
-          style: TextStyle(
-            color: Color(0xFF1A1A2E),
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search_rounded, color: Color(0xFF1A1A2E)),
-            onPressed: () {},
-          ),
-        ],
+        title: const Text('Programs'),
       ),
       body: Column(
         children: [
-          // Search bar
+          // ── Search Bar ──────────────────────────────────
           Container(
-            color: Colors.white,
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
-            child: Container(
-              height: 44,
-              decoration: BoxDecoration(
-                color: const Color(0xFFF5F7FA),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: const Color(0xFFEEEEEE)),
-              ),
-              child: TextField(
-                controller: _searchController,
-                decoration: const InputDecoration(
-                  hintText: 'Search programs...',
-                  hintStyle:
-                      TextStyle(color: Color(0xFFBBBBBB), fontSize: 13),
-                  prefixIcon:
-                      Icon(Icons.search_rounded, color: Color(0xFFBBBBBB)),
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(vertical: 12),
+            color: AppTheme.surface,
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Search programs, skills, categories...',
+                hintStyle:
+                    const TextStyle(color: AppTheme.textMuted, fontSize: 13),
+                prefixIcon: const Icon(Icons.search_rounded,
+                    color: AppTheme.textMuted, size: 20),
+                suffixIcon: _searchController.text.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear_rounded,
+                            color: AppTheme.textMuted, size: 18),
+                        onPressed: () {
+                          _searchController.clear();
+                          _applyFilters();
+                        },
+                      )
+                    : null,
+                filled: true,
+                fillColor: AppTheme.background,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
                 ),
+                contentPadding: const EdgeInsets.symmetric(vertical: 12),
               ),
             ),
           ),
 
-          // Filter chips
+          // ── Filter Chips ────────────────────────────────
           Container(
-            color: Colors.white,
-            height: 44,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.fromLTRB(16, 6, 16, 6),
-              itemCount: _filters.length,
-              itemBuilder: (context, index) {
-                final isSelected = _selectedFilter == index;
-                return GestureDetector(
-                  onTap: () => setState(() => _selectedFilter = index),
-                  child: Container(
-                    margin: const EdgeInsets.only(right: 8),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? const Color(0xFF4A4A6A)
-                          : Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: isSelected
-                            ? const Color(0xFF4A4A6A)
-                            : const Color(0xFFDDDDDD),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        if (isSelected)
-                          const Padding(
-                            padding: EdgeInsets.only(right: 4),
-                            child: Icon(Icons.check,
-                                size: 12, color: Colors.white),
-                          ),
-                        Text(
-                          _filters[index],
-                          style: TextStyle(
-                            fontSize: 12,
+            color: AppTheme.surface,
+            child: Column(
+              children: [
+                const Divider(height: 1, color: AppTheme.borderColor),
+                SizedBox(
+                  height: 48,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                    itemCount: _filters.length,
+                    itemBuilder: (context, index) {
+                      final isSelected = _selectedFilter == index;
+                      final color = index == 2
+                          ? AppTheme.beginnerColor
+                          : index == 3
+                              ? AppTheme.intermediateColor
+                              : index == 4
+                                  ? AppTheme.advancedColor
+                                  : AppTheme.dark;
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() => _selectedFilter = index);
+                          _applyFilters();
+                        },
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          margin: const EdgeInsets.only(right: 8),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 4),
+                          decoration: BoxDecoration(
                             color: isSelected
-                                ? Colors.white
-                                : const Color(0xFF555555),
-                            fontWeight: isSelected
-                                ? FontWeight.w600
-                                : FontWeight.normal,
+                                ? color
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: isSelected ? color : AppTheme.borderColor,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (isSelected) ...[
+                                const Icon(Icons.check_rounded,
+                                    size: 12, color: Colors.white),
+                                const SizedBox(width: 4),
+                              ],
+                              Text(
+                                _filters[index]['label']!,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: isSelected
+                                      ? Colors.white
+                                      : AppTheme.textSecondary,
+                                  fontWeight: isSelected
+                                      ? FontWeight.w700
+                                      : FontWeight.normal,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
+                      );
+                    },
                   ),
-                );
-              },
+                ),
+              ],
             ),
           ),
 
           const SizedBox(height: 8),
 
-          // Program list
+          // ── Program List ────────────────────────────────
           Expanded(
-            child: _isLoading 
-              ? const Center(child: CircularProgressIndicator()) 
-              : _errorMessage.isNotEmpty 
-                ? Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Text(_errorMessage, style: const TextStyle(color: Colors.red)),
-                    ),
-                  )
-                : ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              itemCount: _filteredPrograms.length,
-              itemBuilder: (context, index) {
-                final program = _filteredPrograms[index];
-                return GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ProgramDetailScreen(
-                          program: program,
-                        ),
-                      ),
-                    );
-                  },
-                  child: Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.04),
-                          blurRadius: 6,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        // Thumbnail
-                        Container(
-                          width: 90,
-                          height: 90,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFDDE6F5),
-                            borderRadius: const BorderRadius.horizontal(
-                              left: Radius.circular(12),
-                            ),
-                          ),
-                          child: const Center(
-                            child: Icon(
-                              Icons.play_circle_fill_rounded,
-                              color: Color(0xFF4A90D9),
-                              size: 36,
-                            ),
-                          ),
-                        ),
-
-                        // Info
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 10),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  program.title,
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF1A1A2E),
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+            child: _isLoading
+                ? const Center(
+                    child: CircularProgressIndicator(
+                        color: AppTheme.primary))
+                : _errorMessage.isNotEmpty
+                    ? _buildError()
+                    : _displayPrograms.isEmpty
+                        ? _buildEmpty()
+                        : ListView.builder(
+                            padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+                            itemCount: _displayPrograms.length,
+                            itemBuilder: (context, index) {
+                              return _ProgramCard(
+                                program: _displayPrograms[index],
+                                onTap: () => Navigator.push(
+                                  context,
+                                  AppTheme.slideRoute(ProgramDetailScreen(
+                                    program: _displayPrograms[index],
+                                  )),
                                 ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  program.description,
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    color: Color(0xFF888888),
-                                    height: 1.4,
-                                  ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 8),
-                                Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.add_circle_outline_rounded,
-                                      size: 13,
-                                      color: Color(0xFF888888),
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      'Today · ${program.duration}',
-                                      style: const TextStyle(
-                                        fontSize: 11,
-                                        color: Color(0xFF888888),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
+                              );
+                            },
                           ),
-                        ),
-
-                        // Play arrow
-                        const Padding(
-                          padding: EdgeInsets.only(right: 12),
-                          child: Icon(
-                            Icons.play_arrow_rounded,
-                            color: Color(0xFF4A90D9),
-                            size: 22,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildError() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.wifi_off_rounded,
+                size: 48, color: AppTheme.textMuted),
+            const SizedBox(height: 12),
+            Text(_errorMessage,
+                textAlign: TextAlign.center, style: AppTheme.body),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _fetchPrograms,
+              style: AppTheme.primaryButton(),
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmpty() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.search_off_rounded,
+                size: 48, color: AppTheme.textMuted),
+            const SizedBox(height: 12),
+            const Text('No programs found',
+                style: AppTheme.h3),
+            const SizedBox(height: 6),
+            const Text(
+              'Try adjusting your search or changing the filter.',
+              textAlign: TextAlign.center,
+              style: AppTheme.body,
+            ),
+            const SizedBox(height: 16),
+            TextButton(
+              onPressed: () {
+                _searchController.clear();
+                setState(() => _selectedFilter = 0);
+                _applyFilters();
+              },
+              child: const Text('Clear Filters',
+                  style: TextStyle(color: AppTheme.primary)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ProgramCard extends StatelessWidget {
+  final Program program;
+  final VoidCallback onTap;
+
+  const _ProgramCard({required this.program, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final catColor = AppTheme.categoryColor(program.category);
+    final levelColor = AppTheme.levelColor(program.level);
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          color: AppTheme.surface,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: AppTheme.softShadow,
+        ),
+        child: Row(
+          children: [
+            // Thumbnail
+            Container(
+              width: 88,
+              height: 96,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [catColor.withOpacity(0.85), AppTheme.dark.withOpacity(0.8)],
+                ),
+                borderRadius: const BorderRadius.horizontal(
+                    left: Radius.circular(16)),
+              ),
+              child: Icon(
+                AppTheme.categoryIcon(program.category),
+                color: Colors.white.withOpacity(0.9),
+                size: 34,
+              ),
+            ),
+
+            // Info
+            Expanded(
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Level badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: levelColor.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        program.level,
+                        style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: levelColor),
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      program.title,
+                      style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.textPrimary),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      program.description,
+                      style: AppTheme.bodySmall,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        const Icon(Icons.star_rounded,
+                            color: Color(0xFFFFC107), size: 13),
+                        const SizedBox(width: 3),
+                        Text(program.rating,
+                            style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.textPrimary)),
+                        const SizedBox(width: 8),
+                        const Icon(Icons.access_time_rounded,
+                            size: 12, color: AppTheme.textMuted),
+                        const SizedBox(width: 3),
+                        Text(program.duration,
+                            style: AppTheme.bodySmall
+                                .copyWith(fontSize: 11)),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const Padding(
+              padding: EdgeInsets.only(right: 12),
+              child: Icon(Icons.arrow_forward_ios_rounded,
+                  size: 14, color: AppTheme.textMuted),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import '../app_theme.dart';
 import '../models/program.dart';
- 
+import '../services/user_session.dart';
+import 'home_screen.dart';
+
 class RegistrationScreen extends StatefulWidget {
   final Program? program;
 
@@ -12,215 +15,336 @@ class RegistrationScreen extends StatefulWidget {
 
 class _RegistrationScreenState extends State<RegistrationScreen> {
   final _formKey = GlobalKey<FormState>();
-  
-  String? _name;
-  String? _email;
-  String? _password;
+  bool _obscurePassword = true;
+  bool _isLoading = false;
+
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
   String? _selectedLevel = 'Beginner';
-  
   final List<String> _levels = ['Beginner', 'Intermediate', 'Advanced'];
 
-  void _submitForm() {
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
-      
-      // Simulating form submission
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Registration Successful'),
-          content: Text('Thank you $_name! You are now registered for ${widget.program?.title ?? 'the program'}.'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close dialog
-                Navigator.of(context).pop(); // Go back to detail screen
-              },
-              child: const Text('OK'),
-            ),
-          ],
-        ),
-      );
+  // Pre-fill if user already has session data
+  @override
+  void initState() {
+    super.initState();
+    final session = UserSession.instance;
+    if (session.name.isNotEmpty) _nameController.text = session.name;
+    if (session.email.isNotEmpty) _emailController.text = session.email;
+    // Match level to program level if available
+    if (widget.program != null &&
+        _levels.contains(widget.program!.level)) {
+      _selectedLevel = widget.program!.level;
     }
   }
 
   @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submitForm() async {
+    if (!_formKey.currentState!.validate()) return;
+    _formKey.currentState!.save();
+
+    setState(() => _isLoading = true);
+
+    // Persist user profile
+    await UserSession.instance.saveUser(
+      newName: _nameController.text.trim(),
+      newEmail: _emailController.text.trim(),
+    );
+
+    // Enroll in the program (persists to SharedPreferences)
+    if (widget.program != null) {
+      await UserSession.instance.enroll(widget.program!);
+    }
+
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+
+    // Show success dialog
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        contentPadding: const EdgeInsets.all(28),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: AppTheme.beginnerColor.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(36),
+              ),
+              child: const Icon(Icons.check_circle_rounded,
+                  color: AppTheme.beginnerColor, size: 44),
+            ),
+            const SizedBox(height: 16),
+            const Text('Enrolled!',
+                style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.textPrimary)),
+            const SizedBox(height: 8),
+            Text(
+              'Welcome, ${_nameController.text.trim().split(' ').first}! '
+              'You\'re now enrolled in ${widget.program?.title ?? 'the program'}.',
+              textAlign: TextAlign.center,
+              style: AppTheme.body,
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(ctx),
+                style: AppTheme.primaryButton(),
+                child: const Text('Go to Home'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (!mounted) return;
+    // Clear stack and go home
+    Navigator.pushAndRemoveUntil(
+      context,
+      AppTheme.slideRoute(const HomeScreen()),
+      (route) => false,
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final title = widget.program?.title ?? 'Program';
-    
+    final programTitle = widget.program?.title ?? 'Program';
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: Color(0xFF1A1A2E), size: 20),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Register',
-          style: TextStyle(
-            color: Color(0xFF1A1A2E),
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        ),
+        title: const Text('Enrollment'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Enroll in $title',
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF1A1A2E),
+            // ── Program Info Banner ──────────────────────
+            if (widget.program != null) ...[
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  gradient: AppTheme.categoryGradient(
+                      widget.program!.category),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        AppTheme.categoryIcon(widget.program!.category),
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            programTitle,
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '${widget.program!.duration}  •  ${widget.program!.level}',
+                            style: TextStyle(
+                                color: Colors.white.withOpacity(0.8),
+                                fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
+              const SizedBox(height: 24),
+            ],
+
+            const Text('Your Details', style: AppTheme.h2),
+            const SizedBox(height: 6),
             const Text(
-              'Please fill out the form below to complete your registration.',
-              style: TextStyle(
-                fontSize: 14,
-                color: Color(0xFF555555),
-              ),
+              'Complete the form below to finalize your enrollment.',
+              style: AppTheme.body,
             ),
             const SizedBox(height: 24),
+
+            // ── Form ────────────────────────────────────
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+                color: AppTheme.surface,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: AppTheme.softShadow,
               ),
               child: Form(
                 key: _formKey,
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Name Field
+                    // Full Name
                     TextFormField(
-                      decoration: const InputDecoration(
-                        labelText: 'Full Name',
-                        prefixIcon: Icon(Icons.person_outline),
-                        border: OutlineInputBorder(),
+                      controller: _nameController,
+                      textCapitalization: TextCapitalization.words,
+                      decoration: AppTheme.inputDecoration(
+                        label: 'Full Name',
+                        icon: Icons.person_outline_rounded,
+                        hint: 'Your full name',
                       ),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Please enter your name';
+                      validator: (v) {
+                        if (v == null || v.trim().isEmpty) {
+                          return 'Name is required';
                         }
                         return null;
                       },
-                      onSaved: (value) => _name = value,
                     ),
                     const SizedBox(height: 16),
-                    
-                    // Email Field
+
+                    // Email
                     TextFormField(
-                      decoration: const InputDecoration(
-                        labelText: 'Email Address',
-                        prefixIcon: Icon(Icons.email_outlined),
-                        border: OutlineInputBorder(),
-                      ),
+                      controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Email field cannot be empty';
+                      decoration: AppTheme.inputDecoration(
+                        label: 'Email Address',
+                        icon: Icons.email_outlined,
+                        hint: 'you@example.com',
+                      ),
+                      validator: (v) {
+                        if (v == null || v.trim().isEmpty) {
+                          return 'Email is required';
                         }
-                        if (!RegExp(r'\S+@\S+\.\S+').hasMatch(value)) {
-                          return 'Please enter a valid email';
+                        if (!RegExp(r'\S+@\S+\.\S+').hasMatch(v)) {
+                          return 'Enter a valid email address';
                         }
                         return null;
                       },
-                      onSaved: (value) => _email = value,
                     ),
                     const SizedBox(height: 16),
-                    
-                    // Password Field
+
+                    // Password
                     TextFormField(
-                      decoration: const InputDecoration(
-                        labelText: 'Create Password',
-                        prefixIcon: Icon(Icons.lock_outline),
-                        border: OutlineInputBorder(),
+                      controller: _passwordController,
+                      obscureText: _obscurePassword,
+                      decoration: AppTheme.inputDecoration(
+                        label: 'Create Password',
+                        icon: Icons.lock_outline_rounded,
+                        hint: 'At least 6 characters',
+                        suffix: IconButton(
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility_off_outlined
+                                : Icons.visibility_outlined,
+                            color: AppTheme.textSecondary,
+                            size: 20,
+                          ),
+                          onPressed: () => setState(
+                              () => _obscurePassword = !_obscurePassword),
+                        ),
                       ),
-                      obscureText: true,
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Password field cannot be empty';
+                      validator: (v) {
+                        if (v == null || v.isEmpty) {
+                          return 'Password is required';
                         }
-                        if (value.length < 6) {
-                          return 'Password must have at least 6 characters';
+                        if (v.length < 6) {
+                          return 'Password must be at least 6 characters';
                         }
                         return null;
                       },
-                      onSaved: (value) => _password = value,
                     ),
                     const SizedBox(height: 16),
-                    
-                    // Dropdown Field
+
+                    // Experience Level dropdown
                     DropdownButtonFormField<String>(
-                      decoration: const InputDecoration(
-                        labelText: 'Experience Level',
-                        prefixIcon: Icon(Icons.star_outline),
-                        border: OutlineInputBorder(),
+                      initialValue: _selectedLevel,
+                      decoration: AppTheme.inputDecoration(
+                        label: 'Experience Level',
+                        icon: Icons.signal_cellular_alt_rounded,
                       ),
-                      value: _selectedLevel,
-                      items: _levels.map((String level) {
+                      icon: const Icon(Icons.keyboard_arrow_down_rounded,
+                          color: AppTheme.textSecondary),
+                      items: _levels.map((level) {
                         return DropdownMenuItem<String>(
                           value: level,
-                          child: Text(level),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 10,
+                                height: 10,
+                                decoration: BoxDecoration(
+                                  color: AppTheme.levelColor(level),
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(level),
+                            ],
+                          ),
                         );
                       }).toList(),
-                      onChanged: (String? newValue) {
-                        setState(() {
-                          _selectedLevel = newValue;
-                        });
-                      },
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please select an experience level';
-                        }
-                        return null;
-                      },
+                      onChanged: (v) =>
+                          setState(() => _selectedLevel = v),
+                      validator: (v) =>
+                          v == null || v.isEmpty ? 'Select a level' : null,
                     ),
-                    const SizedBox(height: 24),
-                    
-                    // Submit Button
+                    const SizedBox(height: 28),
+
+                    // Submit
                     SizedBox(
                       width: double.infinity,
-                      height: 50,
                       child: ElevatedButton(
-                        onPressed: _submitForm,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF4A90D9),
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          elevation: 0,
-                        ),
-                        child: const Text(
-                          'Submit Registration',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                        onPressed: _isLoading ? null : _submitForm,
+                        style: AppTheme.primaryButton(),
+                        child: _isLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white),
+                                ),
+                              )
+                            : const Text('Complete Enrollment'),
                       ),
                     ),
                   ],
                 ),
               ),
             ),
+            const SizedBox(height: 24),
           ],
         ),
       ),

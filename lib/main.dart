@@ -1,28 +1,25 @@
 import 'package:flutter/material.dart';
+import 'app_theme.dart';
 import 'screens/login_screen.dart';
-import 'screens/home_screen.dart';
-import 'screens/program_list_screen.dart';
+import 'services/user_session.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // Load persisted user data before the first frame is drawn
+  await UserSession.instance.init();
   runApp(const SkillPathApp());
 }
 
 class SkillPathApp extends StatelessWidget {
-  const SkillPathApp({super.key}); 
+  const SkillPathApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'SkillPath',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF4A90D9),
-          brightness: Brightness.light,
-        ),
-        useMaterial3: true,
-      ),
+      theme: AppTheme.theme,
       home: const LoginScreen(),
     );
   }
-} 
+}
